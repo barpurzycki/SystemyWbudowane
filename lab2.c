@@ -34,11 +34,11 @@ int main()
     {
         printf("\r");
         printf("%d", generateMLS());
-        for(int i = 5; i > 0; i--)
+        for(int i = 0; i < 5; i++)
         {
             printf("%d", BIT_VALUE(counter, i));
         }
-        counter = (counter << 1) | generateMLS();
+        counter = (counter >> 1) | (generateMLS() << 5);
         delay();
     }
     return 0;
