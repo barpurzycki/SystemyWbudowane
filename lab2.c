@@ -2,7 +2,7 @@
 #include <stdlib.h>
 
 #define BIT_VALUE(value, noBit) (value >> noBit) & 1
-unsigned int counter = 0;
+unsigned int counter = 1;
 
 void delay()
 {
@@ -33,11 +33,12 @@ int main()
     while(1)
     {
         printf("\r");
-        for(int i = 5; i >= 0; i--)
+        printf("%d", generateMLS());
+        for(int i = 5; i > 0; i--)
         {
-            printf("%d", generateMLS());
+            printf("%d", BIT_VALUE(counter, i));
         }
-        counter++;
+        counter = (counter << 1) | generateMLS();
         delay();
     }
     return 0;
