@@ -99,7 +99,7 @@ void LCD_print(unsigned char* string){
     }
 }
 
-void LCD_setCursor(unsigned char row, unsigned char col, unsigned char direction){
+void LCD_setCursor(unsigned char row, unsigned char col){
     unsigned char address;
     if(row == 1){
         address = LCD_CURSOR + LINE1 + col;
@@ -108,13 +108,6 @@ void LCD_setCursor(unsigned char row, unsigned char col, unsigned char direction
         address = LCD_CURSOR + LINE2 + col;
     }
     LCD_sendCommand(address);
-    if(direction == 1) {
-        // Przesunięcie tekstu od prawej do lewej
-        LCD_sendCommand(LCD_SHIFT_L);
-    } else {
-        // Przesunięcie tekstu od lewej do prawej
-        LCD_sendCommand(LCD_SHIFT_R);
-    }
 }
 
 void LCD_saveCustChar(unsigned char slot, unsigned char *array){
@@ -148,12 +141,16 @@ int main(void) {
     LCD_init();                 // Inicjalizacja wyswietlacza
     LCD_saveCustChar(0, symbol1);
     while(1){
-        LCD_setCursor(1, 0, 1); // Ustawienie kursora w pierwszym wierszu, kolumna 0, przesunięcie od prawej do lewej
-        LCD_print("Super mega reklama raz dwa trzy");  // Wyswietlenie napisu
-        __delay_ms(250);
-        LCD_setCursor(2, 15, 0); // Ustawienie kursora w drugim wierszu, kolumna 15, przesunięcie od lewej do prawej
-        LCD_print("Inny napis");
-        __delay_ms(250);
+        LCD_setCursor(1, 0); // Ustawienie kursora w pierwszym wierszu
+        LCD_sendData(0);
+        LCD_print("Kup gry w okazyjnej cenie!");  // Wyswietlenie napisu w pierwszym wierszu
+        LCD_sendData(0);
+        LCD_setCursor(2, 0); // Ustawienie kursora w drugim wierszu
+        LCD_sendData(0);
+        LCD_print("Oferta dostepna tylko dzisiaj!"); // Napis w drugim wierszu
+        LCD_sendData(0);
+        __delay_ms(300);
+        LCD_sendCommand(LCD_SHIFT_L); // Napis od lewej 
     }
     return 0;
 }
