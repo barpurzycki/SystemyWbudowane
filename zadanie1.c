@@ -20,6 +20,10 @@
 
 // Zadanie 1.
 
+int GrayConvert(unsigned char i) {
+    return (i >> 1) ^ i;
+}
+
 int main(void) {
     int licznik = 0;
     unsigned char portValue;
@@ -72,6 +76,30 @@ int main(void) {
         while(1) 
         {
             LATA = portValue;   
+            __delay32(1000000);
+            portValue--;
+        }
+    }
+    
+    // podprogram nr 3 - licznik w kodzie Graya zliczajacy w gore 0-255
+    if(licznik == 2)
+    {
+        portValue = 0;
+        while(1)
+        {
+            LATA = GrayConvert(portValue);
+            __delay32(1000000);
+            portValue++;
+        }
+    }
+    
+    // podprogram nr 4 - licznik w kodzie Graya zliczajacy w dol 255-0
+    if(licznik == 3)
+    {
+        portValue = 255;
+        while(1)
+        {
+            LATA = GrayConvert(portValue);
             __delay32(1000000);
             portValue--;
         }
