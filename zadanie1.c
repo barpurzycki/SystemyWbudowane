@@ -32,8 +32,8 @@ int GrayConvert(unsigned char i) {
 }
 
 int main(void) {
-    int licznik = 0;
-    unsigned char portValue;
+    int licznik = 5;
+    unsigned char portValue = 0;
     char currentS6 = 0, currentS7 = 1, prevS6 = 0, prevS7 = 1;
     TRISA = 0x0000;
     TRISD = 0xFFFF;
@@ -109,6 +109,36 @@ int main(void) {
                 __delay32(5000000);
                 portValue--;
             }
+        }
+        
+        // podprogram nr 5 - 2x4 bitowy licznik w kodzie BCD zliczajacy w górę 0-99
+        if(licznik == 4)
+        {
+            LATA = (((portValue/10) << 4) | (portValue % 10));
+            __delay32(5000000);
+            if(portValue <= 99)
+            {
+                portValue++;
+            }
+            else 
+            {
+                portValue = 0;
+            }
+        }
+        
+        // podprogram nr 6 - 2x4 bitowy licznik w kodzie BCD zliczajacy w dół 99-0
+        if(licznik == 5)
+        {
+            LATA = (((portValue/10) << 4) | (portValue % 10));
+            __delay32(5000000);
+            if(portValue > 0)
+            {
+                portValue--;
+            }
+            else
+            {
+                portValue = 99;
+            }  
         }
     }
     
