@@ -32,7 +32,7 @@ int GrayConvert(unsigned char i) {
 }
 
 int main(void) {
-    int licznik = 5;
+    int licznik = 6;
     unsigned char portValue = 0;
     char currentS6 = 0, currentS7 = 1, prevS6 = 0, prevS7 = 1;
     TRISA = 0x0000;
@@ -139,6 +139,23 @@ int main(void) {
             {
                 portValue = 99;
             }  
+        }
+        
+        // 3 bitowy wężyk poruszający się lewo-prawo
+        if(licznik == 6)
+        {
+            unsigned char portValue[10] = {7, 14, 28, 56, 112, 224, 112, 56, 28, 14};
+            unsigned int i = 0;
+            while(1)
+            {
+                LATA = portValue[i];
+                __delay32(2000000);
+                i++;
+                if(i==10)
+                {
+                    i = 0;
+                }
+            }
         }
     }
     
