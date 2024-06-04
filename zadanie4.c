@@ -20,7 +20,6 @@
 #pragma config GCP = OFF                  // Code protection is disabled
 #pragma config JTAGEN = OFF               // JTAG port is disabled
 
-
 #include "xc.h"
 #include <libpic30.h>
 #include <stdbool.h>
@@ -118,78 +117,95 @@ unsigned int display (void){
 }
 
 void time_display(unsigned int time){
+    unsigned char minutes = time / 60;
+    unsigned char seconds = time % 60;
+
     LCD_setCursor(1, 0);
     LCD_print("Set time: ");
-    LCD_sendData('0' + time / 60);
+    LCD_sendData('0' + minutes);
     LCD_sendData(':');
-    LCD_sendData('0' + (time % 60) / 10);
-    LCD_sendData('0' + time % 10);
+    LCD_sendData('0' + (seconds / 10)); 
+    LCD_sendData('0' + (seconds % 10)); 
 }
 
 void power_display(unsigned int power){
+    unsigned char hundreds = power / 100;
+    unsigned char tens = (power / 10) % 10;
+    unsigned char units = power % 10;
+
     LCD_setCursor(2, 0);
     LCD_print("Set power: ");
-    LCD_sendData('0' + power / 100);
-    LCD_sendData('0' + (power % 100) / 10);
-    LCD_sendData('0' + power % 10);
+    LCD_sendData('0' + hundreds); 
+    LCD_sendData('0' + tens);
+    LCD_sendData('0' + units);
+}
+
+bool readButton(volatile unsigned char *port, unsigned char pin) {
+    if ((*port & (1 << pin)) == 0) {
+        __delay_ms(50);
+        if ((*port & (1 << pin)) == 0) {
+            return true;
+        }
+    }
+    return false;
 }
 
 int main(void) {
-    char currentS6 = 0, prevS6 = 0, currentS7 = 0, prevS7 = 0, currentS8 = 0, prevS8 = 0;
+    bool currentS6 = 0, prevS6 = 0;
+    bool currentS7 = 0, prevS7 = 0;
+    bool currentS8 = 0, prevS8 = 0;
     unsigned int power = 0;
     unsigned int time = 0;
     bool start_button = false;
-    
-    TRISB = 0x7FFF;   
-    TRISD = 0xFFE7;
-    TRISE = 0x0000;
-    
+
     AD1CON1 = 0x80E4; 
     AD1CON2 = 0x0404;
     AD1CON3 = 0x0F00;
     AD1CHS = 0;
     AD1CSSL = 0x0020;
-    
+    TRISB = 0x7FFF;   
+    TRISD = 0xFFE7;
+    TRISE = 0x0000;
+
     LCD_init(); 
-   
+
     while(1) {
-        power = display() / 10; 
-        
-        prevS6 = PORTDbits.RD6; 
-        prevS7 = PORTDbits.RD7;
-		prevS8 = PORTDbits.RD8;
-        __delay32(150000);
-        currentS6 = PORTDbits.RD6;
-        currentS7 = PORTDbits.RD7;
-		currentS8 = PORTDbits.RD8;
-        
-        if(currentS6 - prevS6 == 1)
-        {
+        power = display();
+
+        if (power > 999) { 
+            power = 999;
+        }
+
+        prevS6 = currentS6;
+        prevS7 = currentS7;
+        prevS8 = currentS8;
+
+        currentS6 = readButton(&PORTD, 6);
+        currentS7 = readButton(&PORTD, 7);
+        currentS8 = readButton(&PORTD, 8);
+
+        if (currentS6 && !prevS6) {
             time += 15;
         }
-       
-        if(currentS7 - prevS7 == 1)
-        {  
-            start_button = true;
+
+        if (currentS7 && !prevS7) {
+            start_button = !start_button; 
         }
-        
-        if(currentS8 - prevS8 == 1)
-        {  
-            power = 0;
+
+        if (currentS8 && !prevS8) {
             time = 0;
             start_button = false;
         }
-        
-        if(start_button && time > 0){
-            __delay_ms(1000); 
+
+        if (start_button && time > 0) {
+            __delay_ms(1000);
             time--;
         }
-        
-        if(time == 0)
-        {
+
+        if (time == 0) {
             start_button = false;
         }
-        
+
         power_display(power);
         time_display(time);
     }
