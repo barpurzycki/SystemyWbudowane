@@ -34,19 +34,19 @@ void checkButtons(int *licznik, char *prev6, char *prev7) {
     char current7 = PORTDbits.RD7;
 
     if (current6 == 1 && *prev6 == 0) {
-        (*licznik)++;
+        (*licznik)--;
     }
 
     if (current7 == 1 && *prev7 == 0) {
-        (*licznik)--;
+        (*licznik)++;
     }
 
     *prev6 = current6;
     *prev7 = current7;
 
     if (*licznik < 0) {
-        *licznik = 7;
-    } else if (*licznik > 7) {
+        *licznik = 8;
+    } else if (*licznik > 8) {
         *licznik = 0;
     }
 }
@@ -135,8 +135,37 @@ int main(void) {
                 }
                 break;
             case 7: // queue
+                portValue = 0;
+                while (licznik == 7) {
+                    for (int i = 0; i < 8; i++) {
+                        int x = 1;
+                        for (int j = i; j < 8; j++) {
+                            LATA = portValue + x;
+                            x = x << 1;
+                            delay_ms(200);
+                            checkButtons(&licznik, &prev6, &prev7);
+                            if (licznik != 7) break;
+                        }
+                        portValue += x >> 1; 
+                        checkButtons(&licznik, &prev6, &prev7);
+                        if (licznik != 7) break;
+                    }
+                    portValue = 0; 
+                    checkButtons(&licznik, &prev6, &prev7);
+                }
+                break;
+            case 8: // generator
                 {
-                    
+                    unsigned char lfsr = 0b1110011; 
+                    while (licznik == 8) {
+
+                        unsigned char bit = ((lfsr >> 5) ^ (lfsr >> 4) ^ (lfsr >> 3) ^ (lfsr >> 0)) & 1;
+                        lfsr = (lfsr << 1) | bit;
+                        lfsr &= 0x3F;
+                        LATA = lfsr;
+                        delay_ms(200);
+                        checkButtons(&licznik, &prev6, &prev7);
+                    }
                 }
                 break;
         }
