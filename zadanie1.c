@@ -158,7 +158,6 @@ int main(void) {
                 {
                     unsigned char lfsr = 0b1110011; 
                     while (licznik == 8) {
-
                         unsigned char bit = ((lfsr >> 5) ^ (lfsr >> 4) ^ (lfsr >> 3) ^ (lfsr >> 0)) & 1;
                         lfsr = (lfsr << 1) | bit;
                         lfsr &= 0x3F;
