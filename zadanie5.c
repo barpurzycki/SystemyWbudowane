@@ -1,10 +1,3 @@
-/*
- * File:   chess_clock.c
- * Author: local
- *
- * Created on 29 maja 2024, 15:16
- */
-
 // CONFIGURATION BITS
 #pragma config POSCMOD = NONE             // Primary Oscillator Select (primary oscillator disabled)
 #pragma config OSCIOFNC = OFF             // Primary Oscillator Output Function (OSC2/CLKO/RC15 functions as CLKO (FOSC/2))
@@ -132,11 +125,12 @@ bool readButton(volatile unsigned char *port, unsigned char pin) {
 }
 
 int main(void) {
+    
     bool currentP1 = 0, prevP1 = 0;
     bool currentP2 = 0, prevP2 = 0;
-    unsigned int time1 = 300; // czas dla gracza 1 w sekundach
-    unsigned int time2 = 300; // czas dla gracza 2 w sekundach
-    bool player1_turn = true;
+    unsigned int t1 = 60; 
+    unsigned int t2 = 60; 
+    bool p1_turn = true;
 
     TRISB = 0x7FFF;   
     TRISD = 0xFFE7;
@@ -148,40 +142,40 @@ int main(void) {
         prevP1 = currentP1;
         prevP2 = currentP2;
 
-        currentP1 = readButton(&PORTD, 6); // przycisk gracza 1
-        currentP2 = readButton(&PORTD, 7); // przycisk gracza 2
+        currentP1 = readButton(&PORTD, 7); 
+        currentP2 = readButton(&PORTD, 6); 
 
-        if (currentP1 && !prevP1 && !player1_turn) {
-            player1_turn = true;
+        if (currentP1 && !prevP1 && !p1_turn) {
+            p1_turn = true;
         }
 
-        if (currentP2 && !prevP2 && player1_turn) {
-            player1_turn = false;
+        if (currentP2 && !prevP2 && p1_turn) {
+            p1_turn = false;
         }
 
-        if (player1_turn && time1 > 0) {
+        if (p1_turn && t1 > 0) {
             __delay_ms(1000);
-            time1--;
+            t1--;
         }
 
-        if (!player1_turn && time2 > 0) {
+        if (!p1_turn && t2 > 0) {
             __delay_ms(1000);
-            time2--;
+            t2--;
         }
 
-        if (time1 == 0 || time2 == 0) {
+        if (t1 == 0 || t2 == 0) {
             LCD_setCursor(1, 0);
-            LCD_print("Time up!       ");
+            LCD_print("Koniec czasu");
             LCD_setCursor(2, 0);
-            if (time1 == 0) {
-                LCD_print("Player 2 wins!");
+            if (t1 == 0) {
+                LCD_print("Gracz 2 wygrywa");
             } else {
-                LCD_print("Player 1 wins!");
+                LCD_print("Gracz 1 wygrywa");
             }
-            while(1); // Zatrzymanie gry
+            while(1); 
         }
 
-        displayTime(1, time1);
-        displayTime(2, time2);
+        displayTime(1, t1);
+        displayTime(2, t2);
     }
 }
