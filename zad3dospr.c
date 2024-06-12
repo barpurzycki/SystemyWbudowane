@@ -23,62 +23,57 @@
 #include "xc.h"
 #include <libpic30.h>
 
-// Defninicja makr tak by kod byl czytelny, przejrzysty, deskryptywny i przyjazny
-// uzytkownikowi
-#define FCY         4000000UL   // czestotliwosc robocza oscylatora jako polowa 
-                                //czestotliwosci (FNOSC = FRC -> FCY = 4000000)
-// Zdefiniowanie poszczegolnych pinow jako odpowiednie makra
-#define LCD_E       LATDbits.LATD4  
-#define LCD_RW      LATDbits.LATD5
-#define LCD_RS      LATBbits.LATB15
-#define LCD_DATA    LATE
+// Definicja makra dla częstotliwości roboczej oscylatora
+#define FCY 4000000UL   // Częstotliwość robocza oscylatora (FCY = FOSC / 2, gdzie FOSC = 8 MHz)
 
-// Przypisanie wartosci poszcegolnych komend do wlasciwych makr
-#define LCD_CLEAR       0x01    //0b00000001
-#define LCD_HOME        0x02    //0b00000010
-#define LCD_ON          0x0C    //0b00001100
-#define LCD_OFF         0x08    //0b00001000
-#define LCD_CONFIG      0x38    //0b00111000
-#define LCD_CURSOR      0x80
-#define LINE1           0x00
-#define LINE2           0x40
-#define LCD_CUST_CHAR   0x40
-#define LCD_SHIFT_R     0x1D
-#define LCD_SHIFT_L     0x1B
+// Definicje makr dla pinów LCD
+#define LCD_E LATDbits.LATD4  
+#define LCD_RW LATDbits.LATD5
+#define LCD_RS LATBbits.LATB15
+#define LCD_DATA LATE
 
+// Definicje makr dla komend LCD
+#define LCD_CLEAR 0x01        // Komenda czyszczenia ekranu LCD
+#define LCD_HOME 0x02         // Komenda ustawienia kursora na początku
+#define LCD_ON 0x0C           // Komenda włączenia wyświetlacza LCD
+#define LCD_OFF 0x08          // Komenda wyłączenia wyświetlacza LCD
+#define LCD_CONFIG 0x38       // Konfiguracja wyświetlacza LCD
+#define LCD_CURSOR 0x80       // Komenda ustawienia kursora
+#define LINE1 0x00            // Adres pierwszej linii
+#define LINE2 0x40            // Adres drugiej linii
+#define LCD_CUST_CHAR 0x40    // Komenda zapisu niestandardowego znaku
+#define LCD_SHIFT_R 0x1D      // Komenda przesunięcia w prawo
+#define LCD_SHIFT_L 0x1B      // Komenda przesunięcia w lewo
 
-// Definicja funkcji delay w us i ms - operujacych na jednostkach czasu zamiast
-// cykli pracy oscylatora
-
+// Definicje funkcji opóźnienia w mikrosekundach i milisekundach
 void __delay_us(unsigned long us){
-    __delay32(us*FCY/1000000);
+    __delay32(us * FCY / 1000000); // Opóźnienie w mikrosekundach
 }
 
 void __delay_ms(unsigned long ms){
-    __delay32(ms*FCY/1000);
+    __delay32(ms * FCY / 1000);    // Opóźnienie w milisekundach
 }
 
-// Definicja funkcji wysylajacych komendy (RS = 0) i dane (RS = 1) za pomoca 
-// magistrali rownoleglej (LCD_DATA). Znaki i komendy maja 8 bitow!
-
+// Definicje funkcji wysyłających komendy i dane do LCD
 void LCD_sendCommand(unsigned char command){
-    LCD_RW = 0;     // Zapis
-    LCD_RS = 0;     // Przesylanie komend
-    LCD_E = 1;      // Otwarcie transmisji danych
-    LCD_DATA = command;
-    __delay_us(50); // Opoznienie konieczne dla zapisania danych.
-    LCD_E = 0;      // Konieczne zablokowanie transmisji po przeslaniu komunikatu.
+    LCD_RW = 0;     // Ustawienie bitu RW na 0 (zapis)
+    LCD_RS = 0;     // Ustawienie bitu RS na 0 (komenda)
+    LCD_E = 1;      // Ustawienie bitu E na 1 (początek transmisji)
+    LCD_DATA = command; // Wysłanie komendy do LCD
+    __delay_us(50); // Opóźnienie dla zapisania danych
+    LCD_E = 0;      // Ustawienie bitu E na 0 (koniec transmisji)
 }
 
 void LCD_sendData(unsigned char data){
-    LCD_RW = 0;
-    LCD_RS = 1;     // Przesylanie danych
-    LCD_E = 1;
-    LCD_DATA = data;
-    __delay_us(50);
-    LCD_E = 0;
+    LCD_RW = 0;     // Ustawienie bitu RW na 0 (zapis)
+    LCD_RS = 1;     // Ustawienie bitu RS na 1 (dane)
+    LCD_E = 1;      // Ustawienie bitu E na 1 (początek transmisji)
+    LCD_DATA = data; // Wysłanie danych do LCD
+    __delay_us(50); // Opóźnienie dla zapisania danych
+    LCD_E = 0;      // Ustawienie bitu E na 0 (koniec transmisji)
 }
 
+// Definicja niestandardowego znaku
 unsigned char symbol1[8] = {
     0b00000,
     0b00000,
@@ -90,67 +85,64 @@ unsigned char symbol1[8] = {
     0b00000
 };
 
-// Funkcja print wyswietlajaca kolejne 8-bitowe znaki w petli while - * oznacza
-// przypisanie nie wartosci zmiennej lecz jej adresu.
-
+// Funkcja drukowania ciągu znaków na LCD
 void LCD_print(unsigned char* string){
     while(*string){
-        LCD_sendData(*string++);
+        LCD_sendData(*string++); // Wysyłanie kolejnych znaków
     }
 }
 
+// Funkcja ustawiania kursora na LCD
 void LCD_setCursor(unsigned char row, unsigned char col){
     unsigned char address;
     if(row == 1){
-        address = LCD_CURSOR + LINE1 + col;
+        address = LCD_CURSOR + LINE1 + col; // Adres pierwszej linii
     }
     if (row == 2){
-        address = LCD_CURSOR + LINE2 + col;
+        address = LCD_CURSOR + LINE2 + col; // Adres drugiej linii
     }
-    LCD_sendCommand(address);
+    LCD_sendCommand(address); // Ustawienie kursora
 }
 
+// Funkcja zapisu niestandardowego znaku do LCD
 void LCD_saveCustChar(unsigned char slot, unsigned char *array){
     unsigned char i;
-    LCD_sendCommand(LCD_CUST_CHAR + (slot*8));
-    for(i=0; i<8; i++)
-    {
-        LCD_sendData(array[i]);
+    LCD_sendCommand(LCD_CUST_CHAR + (slot*8)); // Komenda zapisu znaku
+    for(i=0; i<8; i++) {
+        LCD_sendData(array[i]); // Zapis poszczególnych linii znaku
     }
 }
 
-// Funkcja inicjalizujaca wyswietlacz LCD. Wysyla niezbedne komendy jak LCD_CONFIG
-// i LCD_ON
-
+// Funkcja inicjalizująca wyświetlacz LCD
 void LCD_init(){
-    __delay_ms(20);
-    LCD_sendCommand(LCD_CONFIG);
-    __delay_us(50);     // opoznienia wynikaja ze specyfikacji wyswietlacza i czasu
-                        // przetwarzania poszczegolnych komend
-    LCD_sendCommand(LCD_ON);
-    __delay_us(50);
-    LCD_sendCommand(LCD_CLEAR);
-    __delay_ms(2);
+    __delay_ms(20); // Opóźnienie początkowe
+    LCD_sendCommand(LCD_CONFIG); // Konfiguracja LCD
+    __delay_us(50); // Opóźnienie
+    LCD_sendCommand(LCD_ON); // Włączenie LCD
+    __delay_us(50); // Opóźnienie
+    LCD_sendCommand(LCD_CLEAR); // Czyszczenie ekranu LCD
+    __delay_ms(2); // Opóźnienie
 }
 
 int main(void) {
-    TRISB = 0x7FFF;     // Ustawienie rejestrow kierunku
-    TRISD = 0x0000;
-    TRISE = 0x0000;
+    TRISB = 0x7FFF; // Ustawienie kierunku pinów (RB15 jako wyjście)
+    TRISD = 0x0000; // Ustawienie kierunku pinów (RD4, RD5 jako wyjścia)
+    TRISE = 0x0000; // Ustawienie kierunku pinów (RE jako wyjścia)
     
-    LCD_init();                 // Inicjalizacja wyswietlacza
-    LCD_saveCustChar(0, symbol1);
+    LCD_init(); // Inicjalizacja wyświetlacza LCD
+    LCD_saveCustChar(0, symbol1); // Zapis niestandardowego znaku
+    
     while(1){
-        LCD_setCursor(1, 0); // Ustawienie kursora w pierwszym wierszu
-        LCD_sendData(0);
-        LCD_print("Kup gry w okazyjnej cenie!");  // Wyswietlenie napisu w pierwszym wierszu
-        LCD_sendData(0);
-        LCD_setCursor(2, 0); // Ustawienie kursora w drugim wierszu
-        LCD_sendData(0);
-        LCD_print("Oferta dostepna tylko dzisiaj!"); // Napis w drugim wierszu
-        LCD_sendData(0);
-        __delay_ms(300);
-        LCD_sendCommand(LCD_SHIFT_L); // Napis od lewej 
+        LCD_setCursor(1, 0); // Ustawienie kursora na początku pierwszego wiersza
+        LCD_sendData(0); // Wysłanie niestandardowego znaku
+        LCD_print("Kup gry w okazyjnej cenie!"); // Wyświetlenie napisu w pierwszym wierszu
+        LCD_sendData(0); // Wysłanie niestandardowego znaku
+        LCD_setCursor(2, 0); // Ustawienie kursora na początku drugiego wiersza
+        LCD_sendData(0); // Wysłanie niestandardowego znaku
+        LCD_print("Oferta dostepna tylko dzisiaj!"); // Wyświetlenie napisu w drugim wierszu
+        LCD_sendData(0); // Wysłanie niestandardowego znaku
+        __delay_ms(300); // Opóźnienie 300 ms
+        LCD_sendCommand(LCD_SHIFT_L); // Przesunięcie napisu w lewo
     }
     return 0;
 }
