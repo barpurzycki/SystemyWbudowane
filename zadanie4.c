@@ -170,12 +170,6 @@ int main(void) {
     LCD_init(); 
 
     while(1) {
-        power = display();
-
-        if (power > 999) { 
-            power = 999;
-        }
-
         prevS6 = currentS6;
         prevS7 = currentS7;
         prevS8 = currentS8;
@@ -183,6 +177,12 @@ int main(void) {
         currentS6 = readButton(&PORTD, 6);
         currentS7 = readButton(&PORTD, 7);
         currentS8 = readButton(&PORTD, 8);
+      
+        power = display();
+
+        if (power > 999) { 
+            power = 999;
+        }
 
         if (currentS6 && !prevS6) {
             time += 15;
