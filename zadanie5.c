@@ -128,9 +128,9 @@ int main(void) {
     
     bool currentP1 = 0, prevP1 = 0;
     bool currentP2 = 0, prevP2 = 0;
+    bool p1_turn = true;
     unsigned int t1 = 60; 
     unsigned int t2 = 60; 
-    bool p1_turn = true;
 
     TRISB = 0x7FFF;   
     TRISD = 0xFFE7;
@@ -162,7 +162,7 @@ int main(void) {
             __delay_ms(1000);
             t2--;
         }
-
+        
         if (t1 == 0 || t2 == 0) {
             LCD_setCursor(1, 0);
             LCD_print("Koniec czasu");
@@ -177,5 +177,5 @@ int main(void) {
 
         displayTime(1, t1);
         displayTime(2, t2);
-    }
+    }   
 }
